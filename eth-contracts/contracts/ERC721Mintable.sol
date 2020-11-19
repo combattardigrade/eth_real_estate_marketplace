@@ -47,7 +47,9 @@ contract Ownable {
 //  4) create 'whenNotPaused' & 'paused' modifier that throws in the appropriate situation
 //  5) create a Paused & Unpaused event that emits the address that triggered the event
 
-contract ERC165 {
+contract ERC165 is Ownable {
+    
+    bool _paused;
     bytes4 private constant _INTERFACE_ID_ERC165 = 0x01ffc9a7;
     /*
      * 0x01ffc9a7 ===
@@ -64,7 +66,24 @@ contract ERC165 {
      * implement ERC165 itself
      */
     constructor () internal {
+        _paused = false;
         _registerInterface(_INTERFACE_ID_ERC165);
+    }
+
+    modifier whenNotPaused() {
+        require(_paused == false, "ERC165: Contract is must not be paused");
+        _;
+    }
+
+    modifier paused() {
+        require(_paused == true, "ERC165: Contract must be paused");
+        _;
+    }
+
+    function updateStatus(bool isPaused) onlyOwner {
+        _paused = isPaused;
+        if(isPaused) emit Paused(msg.sender);
+        else emit Unpaused(msg.sender);
     }
 
     /**
@@ -81,6 +100,9 @@ contract ERC165 {
         require(interfaceId != 0xffffffff);
         _supportedInterfaces[interfaceId] = true;
     }
+
+    event Paused(address sender);
+    event Unpaused(address sender);
 }
 
 contract ERC721 is Pausable, ERC165 {
