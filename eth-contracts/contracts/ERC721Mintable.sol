@@ -120,13 +120,15 @@ contract ERC721 is Pausable, ERC165 {
         // TODO require the msg sender to be the owner of the contract or isApprovedForAll() to be true
         require(isApprovedForAll(owner, msg.sender) || msg.sender == owner, "ERC721: approve caller is not owner nor approved for all");
         // TODO add 'to' address to token approvals
-        _operatorApprovals[msg.sender][to] = true;
+        _tokenApprovals[tokenId] = to;
         // TODO emit Approval Event
         emit Approval(msg.sender, to, tokenId);
     }
 
     function getApproved(uint256 tokenId) public view returns (address) {
         // TODO return token approval if it exists
+        require(_exists(tokenId), "ERC721: approved query for nonexistent token");
+        return _tokenApprovals[tokenId];
     }
 
     /**
@@ -191,12 +193,14 @@ contract ERC721 is Pausable, ERC165 {
     // @dev Internal function to mint a new token
     // TIP: remember the functions to use for Counters. you can refresh yourself with the link above
     function _mint(address to, uint256 tokenId) internal {
-
         // TODO revert if given tokenId already exists or given address is invalid
-  
+        require(to != address(0), "ERC721: Invalid address");
+        require(!_exists(tokenId), "ERC721: token already minted");
         // TODO mint tokenId to given address & increase token count of owner
-
+        _tokenOwner[tokenId] = to;
+        _ownedTokensCount[to].increment();
         // TODO emit Transfer event
+        emit Transfer(msg.sender, to, tokenId);
     }
 
     // @dev Internal function to transfer ownership of a given token ID to another address.
