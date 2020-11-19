@@ -206,16 +206,18 @@ contract ERC721 is Pausable, ERC165 {
     // @dev Internal function to transfer ownership of a given token ID to another address.
     // TIP: remember the functions to use for Counters. you can refresh yourself with the link above
     function _transferFrom(address from, address to, uint256 tokenId) internal {
-
         // TODO: require from address is the owner of the given token
-
+        require(_tokenOwner[tokenId] == msg.sender, "ERC721: Sender is not owner");
         // TODO: require token is being transfered to valid address
-        
+        require(to != address(0), "ERC721: Invalid address");
         // TODO: clear approval
-
+        _tokenApprovals[tokenId] = address(0);
         // TODO: update token counts & transfer ownership of the token ID 
-
+        _ownedTokensCount[from].decrement();
+        _ownedTokensCount[to].increment();
+        _tokenOwner[tokenId] = to;
         // TODO: emit correct event
+        emit Transfer(from, to, tokenId);
     }
 
     /**
