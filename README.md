@@ -2,6 +2,12 @@
 
 The capstone will build upon the knowledge you have gained in the course in order to build a decentralized housing product. 
 
+## Contract Address
+`0x352c2616a5edea24390526d4f78744224ed3fc50`
+
+## OpenSea MarketPlace Storefront
+`https://testnets.opensea.io/collection/unidentified-contract-lloqw5kc9d`
+
 # Project Resources
 
 * [Remix - Solidity IDE](https://remix.ethereum.org/)
