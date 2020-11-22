@@ -1,14 +1,13 @@
 pragma solidity >=0.4.21 <0.6.0;
-import './Verifier.sol';
+import "./Verifier.sol";
 import "./ERC721Mintable.sol";
 
 // TODO define a contract call to the zokrates generated solidity contract <Verifier> or <renamedVerifier>
 // TODO define another contract named SolnSquareVerifier that inherits from your ERC721Mintable class
 contract SolnSquareVerifier is ERC721Mintable {
-
     Verifier verifier;
 
-    constructor(address v) ERC721Mintable() public {
+    constructor(address v) public ERC721Mintable() {
         verifier = Verifier(v);
     }
 
@@ -28,55 +27,51 @@ contract SolnSquareVerifier is ERC721Mintable {
     event SolutionAdded(uint256 index, address account);
 
     // TODO Create a function to add the solutions to the array and emit the event
-    function addSolution(uint256 index, address account, bytes32 key) public {
-        Solution memory solution = Solution({
-            index: index,
-            account: account
-        });
+    function addSolution(
+        uint256 index,
+        address account,
+        bytes32 key
+    ) public {
+        Solution memory solution = Solution({index: index, account: account});
         solutions.push(solution);
+        uniqueSolutions[key] = account;
         emit SolutionAdded(index, account);
     }
 
     // TODO Create a function to mint new NFT only after the solution has been verified
     //  - make sure the solution is unique (has not been used before)
     //  - make sure you handle metadata as well as tokenSuplly
-    function verifyAndMint(address to, uint256 tokenId, uint[2] memory a, uint[2][2] memory b, uint[2] memory c, uint[2] memory input) public {
+    function verifyAndMint(
+        address to,
+        uint256 tokenId,
+        uint256[2] memory a,
+        uint256[2][2] memory b,
+        uint256[2] memory c,
+        uint256[2] memory input
+    ) public {
         bytes32 key = keccak256(abi.encodePacked(a, b, c, input));
-        require(uniqueSolutions[key] == address(0), "SolnSquareVerifier/solution-already-added");
-        require(verifier.verifyTx(a, b, c, input), "SolnSquareVerifier/invalid-solution");
+        require(
+            uniqueSolutions[key] == address(0),
+            "SolnSquareVerifier/solution-already-added"
+        );
+        require(
+            verifier.verifyTx(a, b, c, input),
+            "SolnSquareVerifier/invalid-solution"
+        );
         addSolution(tokenId, to, key);
         super.mint(to, tokenId);
     }
+
+    function getVerifierKey(
+        uint256[2] memory a,
+        uint256[2][2] memory b,
+        uint256[2] memory c,
+        uint256[2] memory input
+    ) public pure returns (bytes32) {
+        return keccak256(abi.encodePacked(a, b, c, input));
+    }
+
+    function getUniqueSolution(bytes32 key) public view returns (address) {
+        return uniqueSolutions[key];
+    }
 }
-
-
-
-
-
-  
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
