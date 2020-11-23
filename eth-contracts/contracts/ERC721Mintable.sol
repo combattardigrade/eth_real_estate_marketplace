@@ -11,7 +11,7 @@ contract Ownable {
     //  1) create a private '_owner' variable of type address with a public getter function
     address _owner;
 
-    function getOwner() public view returns (address) {
+    function owner() public view returns (address) {
         return _owner;
     }
 
@@ -37,10 +37,10 @@ contract Ownable {
         // make sure the new owner is a real address
         require(newOwner != address(0), "Ownable: Invalid address");
         _owner = newOwner;
-        emit TransferOwnership(newOwner);
+        emit OwnershipTransferred(newOwner);
     }
 
-    event TransferOwnership(address newOwner);
+    event OwnershipTransferred(address newOwner);
 }
 
 //  TODO's: Create a Pausable contract that inherits from the Ownable contract
@@ -178,29 +178,23 @@ contract ERC721 is Pausable, ERC165 {
 
     //    @dev Approves another address to transfer the given token ID
     function approve(address to, uint256 tokenId) public {
+        address owner = ownerOf(tokenId);
+        
         // TODO require the given address to not be the owner of the tokenId
-        require(
-            to != _tokenOwner[tokenId],
-            "ERC721: approval to current owner"
-        );
+        require(to != owner, "Contract can't transfer token to same owner");
+
         // TODO require the msg sender to be the owner of the contract or isApprovedForAll() to be true
-        require(
-            isApprovedForAll(_tokenOwner[tokenId], msg.sender) ||
-                msg.sender == _owner,
-            "ERC721: approve caller is not owner nor approved for all"
-        );
+        require(msg.sender == _owner || isApprovedForAll(owner, to), "Contract can't transfer token to same owner");
+
         // TODO add 'to' address to token approvals
         _tokenApprovals[tokenId] = to;
+
         // TODO emit Approval Event
-        emit Approval(msg.sender, to, tokenId);
+        emit Approval(owner, to, tokenId);
     }
 
     function getApproved(uint256 tokenId) public view returns (address) {
         // TODO return token approval if it exists
-        require(
-            _exists(tokenId),
-            "ERC721: approved query for nonexistent token"
-        );
         return _tokenApprovals[tokenId];
     }
 
@@ -308,17 +302,21 @@ contract ERC721 is Pausable, ERC165 {
     ) internal {
         // TODO: require from address is the owner of the given token
         require(
-            _tokenOwner[tokenId] == msg.sender,
+            _isApprovedOrOwner(from, tokenId),
             "ERC721: Sender is not owner"
         );
+
         // TODO: require token is being transfered to valid address
         require(to != address(0), "ERC721: Invalid address");
+
         // TODO: clear approval
         _tokenApprovals[tokenId] = address(0);
+
         // TODO: update token counts & transfer ownership of the token ID
         _ownedTokensCount[from].decrement();
         _ownedTokensCount[to].increment();
         _tokenOwner[tokenId] = to;
+
         // TODO: emit correct event
         emit Transfer(from, to, tokenId);
     }
@@ -577,19 +575,15 @@ contract ERC721Metadata is ERC721Enumerable, usingOraclize {
     }
 
     // TODO: create external getter functions for name, symbol, and baseTokenURI
-    function getName() public view returns (string memory name) {
+    function name() public view returns(string memory name){
         return _name;
     }
 
-    function getSymbol() public view returns (string memory symbol) {
+    function symbol() public view returns(string memory symbol){
         return _symbol;
     }
 
-    function getBaseTokenURI()
-        public
-        view
-        returns (string memory baseTokenURI)
-    {
+    function baseTokenURI() public view returns(string memory uri){
         return _baseTokenURI;
     }
 
@@ -604,7 +598,7 @@ contract ERC721Metadata is ERC721Enumerable, usingOraclize {
     // TIP #2: you can also use uint2str() to convert a uint to a string
     // see https://github.com/oraclize/ethereum-api/blob/master/oraclizeAPI_0.5.sol for strConcat()
     // require the token exists before setting
-    function setTokenURI(uint256 tokenId) public {
+    function setTokenURI(uint256 tokenId) internal{
         require(_exists(tokenId));
         _tokenURIs[tokenId] = strConcat(_baseTokenURI, uint2str(tokenId));
     }
