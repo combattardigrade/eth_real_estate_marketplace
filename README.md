@@ -45,7 +45,7 @@ To run truffle tests:
 
 ```
 npm install
-cd eth-contracts`
+cd eth-contracts
 truffle test TestERC721Mintable.js
 truffle test TestSolnSquareVerifier.js
 truffle test TestSquareVerifier.js
